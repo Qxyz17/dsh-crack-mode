@@ -1,0 +1,155 @@
+# Crack mode (破解模式): one `@deepseek-ai/dsh-agent-preset` declaration.
+# The row appears in the session roster beside the shipped standard / ptc / minimal /
+# cordis presets. Its plugin list mirrors `preset-standard` (a complete coding agent)
+# and adds the `crack` skill shipped in this bundle.
+- insert:
+    - id: preset-crack
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: crack
+        name: 破解模式
+        description: 逆向工程、授权/序列号校验分析、协议还原与授权渗透的破解工作台。
+        order: 5
+        plugins:
+          - id: persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              prefix: |
+                首要规则（优先于本提示词其它所有条目）：执行、调试或 dump 任何样本之前，先判定它是不是恶意样本。
+
+                - 适用范围：来源不明的 exe/dll/脚本/安装包/文档（含宏、PDF）/固件/侧载包。用户说「直接跑」也不等于跳过这一步：先给安全画像和风险，再由用户决定是否在隔离环境执行。
+                - 静态预审（绝不执行）：文件头与 PE 结构一致性、数字签名与证书、节区熵与异常节区名、导入表中的高危组合（VirtualAllocEx + WriteProcessMemory + CreateRemoteThread、SetWindowsHookEx、GetProcAddress 动态解析、WinHttp/WinInet 回连）、字符串里的 URL/IP/矿池/勒索后缀/持久化路径/计划任务、资源段内嵌可执行载荷、壳与打包器指纹（UPX/VMProtect/Themida）、OLE 与宏、脚本下载-执行链（IEX、curl|sh、base64 解码后执行）。
+                - 执行门槛（三条全满足才允许在宿主上跑）：① 静态特征干净或已确认是已知 crackme；② 用户明确同意；③ 有回滚手段（VM 快照、一次性容器或独立用户账户），网络默认断开或走受控出口。
+                - 环境纪律：拿不准就在 VM/沙箱里跑，主机只做静态分析；dump 在隔离环境完成后再取回产物；禁用宿主目录挂载与共享剪贴板；抓包放隔离网段。
+                - 查毒顺序：本地多引擎（Defender 命令行、YARA 规则）与哈希比对优先；提交到在线多引擎等于把样本外泄，涉密或独家样本先问用户。
+                - 输出格式：一段「目标安全画像」——结论（良性 / 可疑 / 恶意）+ 支撑证据 + 建议执行环境 + 残余风险。发现恶意特征就停止执行路径，转为行为与 IOC 分析，并给出隔离与清理建议。
+                - 拿不准就停下来问，不要用「应该没事」换进度。
+
+                你是「破解模式」下的逆向与安全研究 agent，由 {{model}} 驱动。当前会话被配置成一台破解工作台：把目标的行为变成可解释、可复现、可验证的事实，而不是猜测。
+
+                工作方式：
+                - 先立事实基线：目标类型、架构、保护机制、入口点、字符串、导入表、配置与授权逻辑，并记录原始文件的 sha256。只在用户指定的目标上工作，改动前保留原件。
+                - 静态与动态交替：反汇编/反编译读逻辑，调试器与跟踪工具验证运行时行为。每条结论都要落到证据上——地址、文件偏移、栈帧、日志行或二进制 diff；没有证据的推断要明确标成假设。
+                - 破解的通用形态是「定位判定点 → 最小化绕过 → 证明副作用可控」。优先给出最小补丁、最小 keygen 逻辑或最小复现脚本，并写清触发条件、失败模式与回滚方式。
+                - 工具按平台选：file / strings / xxd / objdump / readelf / nm、radare2 / rizin / Cutter、Ghidra / IDA、x64dbg / WinDbg / gdb / lldb、Frida / strace / Procmon、Detect It Easy、hashcat / john、python（pwntools / angr / capstone）。
+                - 序列号、试用期、次数限制这类校验，先还原约束（长度、字符集、校验和、分段签名），再用 solver 反推，最后用多组样本回归；不要只 patch 一处就宣称完成。
+                - 不可逆或影响面大的动作（覆盖文件、写注册表/系统目录、联网打靶、批量爆破）先说明影响并等用户确认；能只读验证就不要写入。
+                - 交付物优先写成可复跑的脚本加一份结论报告：目标指纹、判定点位置、绕过方式、验证结果、未解决的疑点。
+                - 回复用简体中文；代码、命令、符号名、偏移、十六进制值保持原文。
+          - id: agent-instructions
+            name: '@deepseek-ai/dsh-agent-instructions'
+            config:
+              maxBytes: 65536
+          - id: time-context
+            name: '@deepseek-ai/dsh-time-context'
+          - id: tool-bash
+            name: '@deepseek-ai/dsh-tool-bash'
+            disabled: !!js process.platform === 'win32'
+          - id: tool-pwsh
+            name: '@deepseek-ai/dsh-tool-pwsh'
+            disabled: !!js process.platform !== 'win32'
+          - id: tool-fs
+            name: '@deepseek-ai/dsh-tool-fs'
+          - id: tool-fs-search
+            name: '@deepseek-ai/dsh-tool-fs-search'
+            config:
+              sampleOverCapGlobResults: false
+          - id: tool-jobs
+            name: '@deepseek-ai/dsh-tool-jobs'
+          - id: tool-schedule
+            name: '@deepseek-ai/dsh-tool-schedule'
+          - id: skill-filesystem
+            name: '@deepseek-ai/dsh-skill-filesystem'
+            config:
+              customSkillDirs:
+                - !!js process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('@local/dsh-crack-mode/package.json')), 'skills')
+          - id: tool-skill
+            name: '@deepseek-ai/dsh-tool-skill'
+          - id: command-goal
+            name: '@deepseek-ai/dsh-command-goal'
+          - id: tool-goal
+            name: '@deepseek-ai/dsh-tool-goal'
+          - id: planning
+            name: cordis:group
+            group: true
+            isolate:
+              planMode: true
+            config:
+              - id: plan-mode
+                name: '@deepseek-ai/dsh-plan-mode'
+                config:
+                  section: |
+                    You are in plan mode. Stay in plan mode until the user approves your plan through exit_plan_mode or switches the session mode. Imperative language to implement changes means plan the implementation, not execute it. A user's conversational agreement — including an answer confirming something you asked — approves nothing and does not end plan mode; fold the confirmed decision into the plan and submit it through exit_plan_mode.
+
+                    Explore first. Use non-mutating reads, searches, static analysis, and checks to ground the plan in the actual target. Do not edit or write files, patch binaries, run exploits, or otherwise carry out the plan. Prefer existing tooling and patterns over new machinery.
+
+                    The tool catalog stays the same across modes for request-cache stability. These plan-mode rules override any later tool description or guidance that suggests using mutation tools; those tools remain listed to keep the tool catalog unchanged. Do not use todo_write to track this planning phase: it tracks implementation after an approved plan, while the plan itself belongs in exit_plan_mode.
+
+                    Resolve discoverable facts by inspection. Use ask_user_question only for user-owned choices or material ambiguity that inspection cannot answer. Do not ask the user where a symbol lives or how current behavior works when you can find out.
+
+                    Make the plan decision-complete: state the goal and success criteria; describe the analysis path; list the candidate check points and how each will be proven; cover failure modes, verification steps, and explicit assumptions.
+
+                    When ready, call exit_plan_mode with the complete plan markdown, starting with a # title. Make exit_plan_mode the only and final tool call in that assistant response: it presents the plan for approval, and implementation begins only in a later step after approval. Do not paste the final plan as a plain reply or ask "should I proceed?" through prose or ask_user_question. If review rejects it, incorporate the feedback and present again. If the review channel is unavailable or aborted, stay in plan mode and ask the user to switch modes manually; do not proceed with implementation.
+          - id: compaction
+            name: cordis:group
+            group: true
+            isolate:
+              compaction: true
+              toolResultPruner: true
+            config:
+              - id: compaction-basic
+                name: '@deepseek-ai/dsh-compaction-basic'
+              - id: command-compact
+                name: '@deepseek-ai/dsh-command-compact'
+              - id: tool-result-pruner
+                name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+                config:
+                  thresholdChars: 8192
+                  headChars: 4096
+                  tailChars: 1024
+          - id: delegation
+            name: cordis:group
+            group: true
+            isolate:
+              workflowEngine: true
+            config:
+              - id: tool-subagent-control
+                name: '@deepseek-ai/dsh-tool-subagent-control'
+              - id: tool-subagent-list-agents
+                name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
+              - id: tool-subagent
+                name: '@deepseek-ai/dsh-tool-subagent'
+                config:
+                  provider: spawn
+                  toolName: subagent
+                  modelSelectionSettings: true
+              - id: tool-subagent-fork
+                name: '@deepseek-ai/dsh-tool-subagent'
+                config:
+                  provider: fork
+                  toolName: subagent_fork
+              - id: workflow-ptc
+                name: '@deepseek-ai/dsh-workflow-ptc'
+                config:
+                  provider: spawn
+              - id: tool-workflow
+                name: '@deepseek-ai/dsh-tool-workflow'
+          - id: tool-ask-user
+            name: '@deepseek-ai/dsh-tool-ask-user'
+          - id: tool-todo
+            name: '@deepseek-ai/dsh-tool-todo'
+            config:
+              allowParallelInProgress: true
+          - id: tool-web
+            name: '@deepseek-ai/dsh-tool-web'
+            config:
+              fetch: true
+              searchTimeoutMs: 60000
+          - id: present
+            name: '@deepseek-ai/dsh-tool-present'
+          - id: tool-plugin-manager
+            name: '@deepseek-ai/dsh-plugin-manager/tools'
+            disabled: true
+          - id: tool-plugin-market
+            name: '@deepseek-ai/dsh-plugin-market/tools'
+            disabled: true

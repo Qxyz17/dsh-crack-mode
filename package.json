@@ -1,0 +1,37 @@
+{
+  "name": "@local/dsh-crack-mode",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Crack mode: an agent preset for reverse engineering, license/logic cracking and authorized offensive security work.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Qxyz17/dsh-crack-mode.git"
+  },
+  "homepage": "https://github.com/Qxyz17/dsh-crack-mode#readme",
+  "keywords": [
+    "dsh-bundle",
+    "agent-preset",
+    "reverse-engineering",
+    "security-research"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "skills/**",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
