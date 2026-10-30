@@ -17,13 +17,17 @@
 
 ## 安装
 
+三个等价入口，任选其一：
+
 ```text
-plugin_manager { action: "install_bundle", target: "<绝对路径>/dsh-crack-mode" }
+plugin_manager { action: "install_bundle", target: "dsh-crack-mode" }              # npm 包名
+plugin_manager { action: "install_bundle", target: "github:Qxyz17/dsh-crack-mode" } # GitHub 仓库
+plugin_manager { action: "install_bundle", target: "<绝对路径>/dsh-crack-mode" }    # 本地目录
 ```
 
 安装后新建会话，在模式选择器里选「破解模式」即可；已有会话保持创建时的预设，不会自动切换。
 
 ## 注意
 
-- `skill-filesystem` 的 `customSkillDirs` 用 `createRequire(baseUrl).resolve('@local/dsh-crack-mode/package.json')` 定位本包的 `skills/`，因此必须作为 profile 依赖安装，不要手抄目录路径。
+- `skill-filesystem` 的 `customSkillDirs` 用 `createRequire(baseUrl).resolve('dsh-crack-mode/package.json')` 定位本包的 `skills/`，因此必须作为 profile 依赖安装，不要手抄目录路径；改包名时这串必须同步改，否则技能挂不上。
 - 破解行为的边界由会话的权限预设（read-only / workspace-write / danger-full-access）与实际授权决定，模式本身不改变沙箱与审批策略。

@@ -1,10 +1,13 @@
 {
-  "name": "@local/dsh-crack-mode",
+  "name": "dsh-crack-mode",
   "version": "1.1.0",
-  "private": true,
   "type": "module",
   "description": "Crack mode: an agent preset for reverse engineering, license/logic cracking and authorized offensive security work.",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Qxyz17/dsh-crack-mode.git"
